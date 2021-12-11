@@ -1,10 +1,10 @@
-import {File, Arg} from './base.mjs';
-import paizaExec from './paiza.mjs';
+import express from 'express'
+import apiRouter from './api.mjs'
+const app = express()
+const port = 3000
 
-const arg = new Arg(2);
+app.use('/api', apiRouter);
 
-const sourceCode = new File('data/source_code.txt').read();
-const input = new File('data/input.txt').read();
-
-const result = await paizaExec(arg.get(0), sourceCode, `${input}`, arg.get(1) ?? 2);
-console.log(result.output);
+app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`)
+})

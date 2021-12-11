@@ -2,6 +2,10 @@ import { postData, getData } from './fetch.mjs';
 import { performance } from 'perf_hooks';
 
 const create = async (language, sourceCode, input) => {
+    // 入力の変換
+    input = `"${input}"`;
+    // TODO 複数行の入力
+
     const url = "http://api.paiza.io:80/runners/create";
     const data = {
         source_code: sourceCode,
@@ -23,13 +27,14 @@ const getDetails = async (sessionId) => {
 }
 
 export default async (language, sourceCode, input, limitTime) => {
-    const createResult = await create(language, sourceCode, input);
-    
+    let isSuccess = false;
+
     let isTimeOver = false;
+    const createResult = await create(language, sourceCode, input);
 
     // 処理が完了するか制限時間を超すまで待つ
     const startTime = performance.now(); // 開始時間
-    while(true) {
+    while (true) {
         const getStatusResult = await getStatus(createResult['id']);
 
         // 処理が完了した場合
@@ -44,13 +49,17 @@ export default async (language, sourceCode, input, limitTime) => {
             break;
         }
     }
-    
-    const getDetailsResult = await getDetails(createResult['id']);
-    
-    let output;
-    if (isTimeOver) getDetailsResult.result = 'time_over';
 
-    switch(getDetailsResult.result) {
+    const getDetailsResult = await getDetails(createResult['id']);
+    const result = getDetailsResult.result;
+    if (isTimeOver) result = 'time_over';
+
+    if (result === 'success') isSuccess = true;
+
+
+    let output;
+
+    switch (result) {
         case 'success':
             output = getDetailsResult.stdout;
             break;
@@ -58,14 +67,15 @@ export default async (language, sourceCode, input, limitTime) => {
             output = getDetailsResult.stderr;
             break;
         case 'time_over':
-            output = "処理時間の上限を超えました。";
+            output = '処理時間の上限を超えました。';
+            break;
             break;
         default:
-            output = "不明なエラー";
+            output = '不明なエラー';
     }
 
     return {
-        'result': getDetailsResult.result === 'success',
+        'is_success': isSuccess,
         'output': output,
     }
 }
