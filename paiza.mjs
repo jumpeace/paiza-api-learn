@@ -4,9 +4,6 @@ import { performance } from 'perf_hooks';
 const create = async (language, sourceCode, input) => {
     const url = "http://api.paiza.io:80/runners/create";
     const data = {
-        // source_code: sourceCode,
-        // language: language,
-        // input: input,
         source_code: sourceCode,
         language: language,
         input: input,
